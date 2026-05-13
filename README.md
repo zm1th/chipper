@@ -156,9 +156,11 @@ Chipper runs git commands automatically as part of the ticket lifecycle when `gi
 | Lifecycle event | Git action |
 |---|---|
 | `chipper start` | Commits the manifest update, creates and checks out a branch named `<project>-<slug>` |
-| `chipper done` | Commits the ticket file (with AI summary) and manifest; prompts to push |
+| `chipper done` | Opens an interactive staging interface to review and commit changes, then prompts to push |
 
 Branch names follow the pattern `CHP-login` by default. A prefix can be configured (e.g. `branch_prefix = feat` yields `feat/CHP-login`).
+
+Chipper will never commit changes while on the trunk branch. All commits happen on a ticket branch created by `chipper start`.
 
 Git integration can be disabled per-command with `--no-git`, or globally by setting `git = false` in `.chipper`.
 
