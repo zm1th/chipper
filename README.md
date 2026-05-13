@@ -9,6 +9,18 @@ Chipper is a CLI tool for managing tickets as plain text files within your proje
 - The ticket queue is always sorted by priority.
 - Commands are short and AI-friendly: easy to invoke from a Claude session or your terminal.
 
+## Installation
+
+**Homebrew (macOS):**
+```sh
+brew install <tap>/chipper
+```
+
+**From source (requires Go):**
+```sh
+go install github.com/user/chipper@latest
+```
+
 ## Getting Started
 
 ```sh
