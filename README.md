@@ -18,7 +18,9 @@ brew install <tap>/chipper
 
 **From source (requires Go):**
 ```sh
-go install github.com/user/chipper@latest
+git clone https://github.com/zm1th/chipper
+cd chipper
+make install
 ```
 
 ## Getting Started
@@ -79,7 +81,7 @@ Slugs are assigned in the manifest. Chipper will suggest a slug based on the fil
 | `chipper unregistered` | List unregistered files and interactively prompt to assign a slug to each one |
 | `chipper show <id>` | Display a ticket's content |
 | `chipper start <id>` | Mark a ticket in progress, commit the manifest update, and create+checkout a git branch named after the ticket |
-| `chipper done <id>` | Mark a ticket complete, append an AI summary to the ticket file, commit all changes, and optionally push |
+| `chipper done` | Mark the in-progress ticket complete; interactively prompts for any other tickets also finished on this branch; `--also slug1,slug2` skips the prompt |
 | `chipper cancel <id>` | Mark a ticket cancelled and commit the manifest update |
 | `chipper archive <id>` | Archive a ticket (remove from active queue, keep the file) and commit the manifest update |
 | `chipper slug <id> <new-slug>` | Rename a ticket's slug; interactively offers to update all references to the old ID across ticket files |
@@ -130,13 +132,23 @@ add-login-page = login
 dark-mode = dark-mode
 ```
 
-**`chipper-queue`** — tracks status and priority order using sparse indexes:
+**`chipper-queue`** — tracks status and optional priority index per slug, written in three sections:
 
 ```
-1000 = initial    done
-2000 = login      in_progress
-3000 = dark-mode  todo
+login            = in_progress  2000
+dark-mode        = todo         3000
+
+new-idea         = todo
+
+initial          = done
+old-task         = cancelled
 ```
+
+- **Top section**: active tickets with a priority index, sorted ascending
+- **Middle section**: active tickets not yet sorted into the priority queue
+- **Bottom section**: completed tickets (done, cancelled, archived), appended over time
+
+Completed tickets lose their priority index — they are never re-sorted and simply accumulate at the bottom as a record of finished work.
 
 Gaps between indexes (default: 1000) mean that inserting or repositioning a ticket rarely causes conflicts. When conflicts do occur, only the affected entries are renumbered — not the rest of the list.
 

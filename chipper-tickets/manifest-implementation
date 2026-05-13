@@ -3,8 +3,15 @@ Implement reading and writing the two manifest files: chipper-slugs and chipper-
 chipper-slugs maps ticket filenames to unique slugs:
   filename = slug
 
-chipper-queue tracks priority order and status using sparse indexes:
-  1000 = slug    status
+chipper-queue uses slug as the key and writes entries in three sections:
+  slug = status [index]   <- top: active + prioritized, sorted by index
+  slug = status           <- middle: active, unsorted (no index)
+                          <- blank line separator
+  slug = status           <- bottom: completed (done/cancelled/archived), appended over time
+
+Completed tickets always lose their index when written. The three-section
+structure means the file is a living record: work rises to the top, completed
+work accumulates at the bottom.
 
 Requirements:
 - Parse and write both files in key = value plaintext format

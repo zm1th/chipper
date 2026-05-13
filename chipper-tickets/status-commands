@@ -9,10 +9,11 @@ Implement ticket status commands: start, done, cancel, archive.
 `chipper done`:
 - if no ticket is in progress, emit failure message and exit
 - Mark current ticket done in chipper-queue
-- WRONG: Append AI-generated summary to the ticket file (decisions made, actions taken, context)
-  - this doesn't make sense. Chipper is not running AI.
-  - if the AI is running the chipper commands, it can append stuff to the file if it wants.
-  - but chipper is only dealing with files and git commits, no AI stuff.
+- Interactively prompt: "any other tickets completed on this branch?" showing a
+  multi-select of all other active tickets
+- Mark any additionally selected tickets as done
+- --also slug1,slug2 flag skips the interactive prompt and marks those slugs done directly
+- Completed tickets lose their priority index and are written to the bottom section of chipper-queue
 - Run git integration (see git-integration ticket)
 
 `chipper cancel <id>`:

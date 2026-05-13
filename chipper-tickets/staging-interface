@@ -1,0 +1,17 @@
+Implement the interactive file staging interface used by `chipper done`.
+
+When chipper done is run, before committing, present the user with an ncurses-style
+interface showing all changed and new files in the working tree.
+
+Behavior:
+- List all changed/new files with their status (modified, new, deleted)
+- If any large binary files are present that were not previously committed, prompt
+  to include or ignore them before entering the staging interface
+- Allow the user to stage or unstage individual files
+- Show a proposed commit message and allow the user to edit it
+- On confirmation, commit the staged files with the final message
+
+This interface is only used during `chipper done`. It gives the user full control
+over what goes into the closing commit without requiring knowledge of raw git commands.
+
+Depends on: cli-scaffolding, git-integration

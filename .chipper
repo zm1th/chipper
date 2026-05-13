@@ -1,0 +1,5 @@
+project = CHP
+tickets_dir = chipper-tickets
+git = true
+trunk_branch = main
+branch_prefix =

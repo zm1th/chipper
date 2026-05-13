@@ -1,0 +1,19 @@
+Set up binary distribution for macOS and Linux.
+
+Targets:
+- macOS arm64 (Apple Silicon)
+- macOS amd64 (Intel)
+- Linux arm64
+- Linux amd64
+
+Tasks:
+- GitHub Actions workflow triggered on version tags (e.g. v0.1.0)
+- Use goreleaser or raw go build cross-compilation to produce binaries for all four targets
+- Attach binaries to GitHub Release
+- Homebrew tap formula that points at the GitHub Release artifacts
+  so macOS users can install with: brew install <tap>/chipper
+
+This ticket is not blocking any other work — build and install locally
+via `go install` until this is in place.
+
+Depends on: cli-scaffolding
