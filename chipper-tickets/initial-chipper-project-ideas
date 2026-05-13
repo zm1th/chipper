@@ -1,0 +1,98 @@
+Chipper is a cli tool for managing tickets within files and operates on a directory within whatever the current scope of a project is.
+Each "chip" of work is captured by chipper in files which are committed to git.
+End users can set up chipper tickets in any directory they want.
+The `chipper` key word opens to easy and intuitive commands for ticket management.
+By default, chipper sets up a `chipper-tickets` directory within the current repo.
+This directory has lots of plaintext files, with or without extension, and whose extensions do not matter.
+Each file contains descriptive text.
+This file, `initial-chipper-project-ideas`, is the first ever chipper ticket.
+The goal of this ticket is:
+ - to create a README file introducing the chipper project
+ - to conceive of and document the basic commands and usage for chipper tickets
+ - to conceive of and document configuration options and a config file format
+ - based on this documentation, to create new chipper tickets in the project representing future work to complete the project.
+
+A few thoughts:
+ - having the full original tickets in the project itself is a sort of self-documentation for what was accomplished.
+ - it probably makes sense for chipper to offer default Claude / AI instructions for augmenting what is documented in chipper ticket files
+   That is, to to add summary data of actions taken, decisions made, and additional context behind the task.
+ - It should be easy to avoid deploying chipper tickets at release time by omitting a directory.
+   However, if someone wants to use a specialized chipper directory outside of the project, this should be possible
+   with a simple chipper configuration file.
+ - the configuration file can also specify details such as ticket filename extension (default to none)
+
+In order to avoid lots of noise in the git log, it makes sense for the tickets to essentially remain in place.
+I don't want to modify their extension or name, or change their location, to mark them in progress or completed.
+Instead, there can be a single manifest file in the chipper directory.
+This file can be used to change the ordering of tickets.
+And it can also assign short, unique "slugs" for each ticket.
+
+For example, this ticket is called "initial-chipper-project-ideas," but its slug might be "initial"
+Or, if there's already something called "initial," the slug might be "chipper-ideas"
+
+The point of the slugs is for purposes of naming tickets in cli operations, for re-ordering, marking in progress, marking complete, and so on.
+
+It is common in engineering teams for a branch name to reference a Jira ticket number.
+With unique slugs, we can still use the slug in the branch name.
+But it is usually easier to type a slug than to type a ticket number.
+
+There should definitely be a project identifier, which is set up in the configuration file in the project.
+So, the actual ticket identifier is PROJECT-SLUG.
+The project identifier can be anything, but by convention should be only 3 or 4 characters long.
+Once we have a way to set this up, the project identifier for this project will be CHP.
+So this ticket would be CHP-initial.
+
+The manifest might have two sections, or might be two files.
+One section or file specifies the mapping from filenames in the tickets directory to slugs.
+Another section or file specifies the status and current priority level of each slug.
+
+That means we need commands for adding, archiving, canceling, deleting, marking in progress, and marking complete each piece of work.
+And these should be very simple commands which use very few tokens.
+I should be able to hop in claude and say "start xyz ticket" and it runs an appropriate command to update the manifest.
+Something like `chipper in_progress CHP-initial`
+
+And of course, this command might respond with "there's another ticket in progress, want to finish that first" or whatever.
+
+We can consider also allowing chipper to optionally handle git commands as well.
+
+Since the files are in the git repo, when I first create tickets, they are not available to others.
+Eventually I may want to be able to serve up a simple web interface based on the tickets in the repo.
+The chipper commands and knowledge possessed by AI about how to use them should be simple enough a less technical product manager can still mess around with tickets.
+
+If the current session is really just to create some tickets, and then commit them, something cool about this is that the human
+can interact with the AI to create much more complete ticket documentation.
+
+We start out with the tickets not containing attachments or screenshots or whatever.
+In the future we could add this but we are keeping the scope small for now.
+I will be the first user of chipper and will use it to track my own work in my own repo.
+Some group usage and advanced features may be less than ideal until we focus on those things more.
+
+In terms of prioritization, I believe in keeping tickets prioritized as they are added.
+Ultimately, we should employ and insertion sort algorithm.
+We keep the entire queue sorted at all times.
+I can add a new ticket by simple creating a file.
+Or I can use commands to add a new ticket.
+At some point I might end up with many tickets which have not yet been added to a spot within the list.
+The algorithm is:
+
+for each unsorted ticket:
+  present the project's midpoint ticket title and the title of the unsorted ticket.
+  allow the end user to say which is more important.
+  if the midpoint is more important, we now do the same comparison against the second half of the list.
+  if the new ticket is more important, we now do the s ame comparison against the first half of the list.
+  once we are down to a list size of under 10, we start showing that segment of the list
+  and the end user may select an index explicitly, where to insert the new task
+  or, we keep splitting up the list until we get down to a candidate list size of 1, do the comparison, and put the new task in the right place.
+
+this should require log2(list size) comparisons to add the item in the appropriate spot.
+
+If we have many unsorted items, we go through this algorithm for each one.
+
+The manifest keeps track of list indexes by slug.
+
+But, if we insert something high in the list, it means the rest of the list will have to update indexes.
+
+Therefore, the indexes specified in the manifest should have space between them, so as to avoid frequent large sort index updates.
+
+I do have more ideas. But I want to start with this, and have a conversation with claude. We will capture commands and specifications, create new tickets, and create a readme
+with our resulting findings.
