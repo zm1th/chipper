@@ -1,13 +1,18 @@
 Implement ticket status commands: start, done, cancel, archive.
 
 `chipper start <id>`:
+- Fail if ticket id does not exist.
+- Fail if another ticket is already in_progress and specify which one is in progress.
 - Mark ticket in_progress in chipper-queue
-- Warn if another ticket is already in_progress
 - Run git integration (see git-integration ticket)
 
-`chipper done <id>`:
-- Mark ticket done in chipper-queue
-- Append AI-generated summary to the ticket file (decisions made, actions taken, context)
+`chipper done`:
+- if no ticket is in progress, emit failure message and exit
+- Mark current ticket done in chipper-queue
+- WRONG: Append AI-generated summary to the ticket file (decisions made, actions taken, context)
+  - this doesn't make sense. Chipper is not running AI.
+  - if the AI is running the chipper commands, it can append stuff to the file if it wants.
+  - but chipper is only dealing with files and git commits, no AI stuff.
 - Run git integration (see git-integration ticket)
 
 `chipper cancel <id>`:
@@ -17,6 +22,8 @@ Implement ticket status commands: start, done, cancel, archive.
 - Mark ticket archived in chipper-queue
 - Archived tickets are excluded from active queue views
 
-All commands accept the full ticket ID (e.g. CHP-login) or just the slug (login).
+commands accept the full ticket ID (e.g. CHP-login) or just the slug (login).
+But the done command expects that in this directory zero or one tickets are active at a time.
+And if zero fails.
 
 Depends on: cli-scaffolding, manifest-implementation

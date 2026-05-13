@@ -1,13 +1,22 @@
 Implement git integration for chipper start and chipper done.
 
-`chipper start <id>`:
-- Commit the manifest update (chipper-queue)
-- Create and checkout a branch named <PROJECT>-<slug> (e.g. CHP-login)
-- If branch_prefix is set in .chipper, use <prefix>/<PROJECT>-<slug> (e.g. feat/CHP-login)
+Note that we should not ever commit things outside of a branch.
 
-`chipper done <id>`:
-- Commit the ticket file (with AI summary) and updated chipper-queue
-- Prompt user whether to push the branch
+
+`chipper start <id>`:
+- Ensure we are on the trunk branch.
+- Ensure the trunk branch (as configured in .chipper file) is up to date with remote (when applicable)
+- Create and checkout a branch named <PROJECT>-<slug> (e.g. CHP-login) (If branch_prefix is set in .chipper, use <prefix>/<PROJECT>-<slug> (e.g. feat/CHP-login))
+[at this point the caller can make changes to the manifest marking the ticket in progress]
+- Commit the manifest update (chipper-queue)
+
+`chipper done`:
+- for all un-added changes, if any are large binary files not previously committed, prompt the user to include or ignore those files
+- show the user the full list of changed or new files, in an ncurses-style interface
+- allow the user to stage or unstage any file
+- supply a proposed commit message and allow the end user to modify it as needed
+- commit locally
+- Prompt user to push the branch when a remote origin exists
 
 Git integration is enabled by default when inside a git repository.
 It can be disabled globally with `git = false` in .chipper,
