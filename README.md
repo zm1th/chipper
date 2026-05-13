@@ -70,13 +70,17 @@ Slugs are assigned in the manifest. Chipper will suggest a slug based on the fil
 | `chipper done <id>` | Mark a ticket complete, append an AI summary to the ticket file, commit all changes, and optionally push |
 | `chipper cancel <id>` | Mark a ticket cancelled and commit the manifest update |
 | `chipper archive <id>` | Archive a ticket (remove from active queue, keep the file) and commit the manifest update |
-| `chipper slug <id> <new-slug>` | Rename a ticket's slug |
+| `chipper slug <id> <new-slug>` | Rename a ticket's slug; interactively offers to update all references to the old ID across ticket files |
 | `chipper mv <id> <new-filename>` | Rename a ticket file on disk and update the manifest |
 | `chipper relink <id> <filename>` | Link an orphaned slug to an existing file (e.g. after a manual rename) |
 | `chipper list --orphaned` | List slugs whose ticket files no longer exist on disk |
 | `chipper orphaned` | List orphaned slugs and interactively prompt to relink each one to a new filename |
 | `chipper priority <id> <index>` | Set a specific sort index for a ticket; if the index is taken, the existing ticket is bumped to the next available index below it |
 | `chipper ai` | Interactively generate AI instruction files for supported coding tools |
+| `chipper <id> depends-on <id>` | Declare that a ticket depends on another |
+| `chipper <id> remove-dep <id>` | Remove a dependency relationship |
+| `chipper deps <id>` | Show all dependencies for a ticket |
+| `chipper blocking <id>` | Show all tickets that depend on the given ticket |
 
 ### Examples
 
@@ -123,6 +127,15 @@ dark-mode = dark-mode
 ```
 
 Gaps between indexes (default: 1000) mean that inserting or repositioning a ticket rarely causes conflicts. When conflicts do occur, only the affected entries are renumbered — not the rest of the list.
+
+**`chipper-dependencies`** (optional) — declares relationships between tickets:
+
+```
+login depends-on scaffold
+dashboard depends-on login
+```
+
+When present, chipper can warn if a ticket is started before its dependencies are complete, and can factor dependencies into sort suggestions. This file is optional and not required for basic chipper usage.
 
 Valid statuses: `todo`, `in_progress`, `done`, `cancelled`, `archived`
 

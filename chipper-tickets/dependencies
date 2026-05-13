@@ -1,0 +1,22 @@
+Implement ticket dependency tracking via an optional chipper-dependencies file.
+
+Format (one relationship per line):
+  <slug> depends-on <slug>
+
+Commands:
+  chipper <id> depends-on <id>   Add a dependency relationship
+  chipper <id> remove-dep <id>   Remove a dependency relationship
+  chipper deps <id>              Show all dependencies for a ticket
+  chipper blocking <id>          Show all tickets that depend on the given ticket
+
+Behavior:
+- chipper start warns if any of a ticket's dependencies are not yet done
+- chipper sort can optionally factor dependencies into sort suggestions
+  (a ticket should not be ranked above its dependencies)
+- chipper list can show dependency status alongside each ticket
+- The file is optional — its absence does not affect any other chipper behavior
+
+This is a separate manifest file alongside chipper-slugs and chipper-queue,
+keeping the core manifest format simple and dependencies opt-in.
+
+Depends on: manifest-implementation, status-commands

@@ -1,0 +1,13 @@
+When a ticket's slug is renamed, search all ticket files in the project for references
+to the old ticket ID (e.g. CHP-login) and interactively offer to replace them with the new ID.
+
+Behavior:
+- Triggered automatically after `chipper slug <id> <new-slug>`
+- Scan every file in the tickets directory for occurrences of the old PROJ-SLUG string
+- For each match, show the ticket filename, the line, and prompt to replace
+- User can accept, skip, or accept-all
+- Updates the files in place for accepted replacements
+
+Also applies to the chipper-dependencies file, since it references slugs directly.
+
+Depends on: rename-commands
