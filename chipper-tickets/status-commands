@@ -1,0 +1,22 @@
+Implement ticket status commands: start, done, cancel, archive.
+
+`chipper start <id>`:
+- Mark ticket in_progress in chipper-queue
+- Warn if another ticket is already in_progress
+- Run git integration (see git-integration ticket)
+
+`chipper done <id>`:
+- Mark ticket done in chipper-queue
+- Append AI-generated summary to the ticket file (decisions made, actions taken, context)
+- Run git integration (see git-integration ticket)
+
+`chipper cancel <id>`:
+- Mark ticket cancelled in chipper-queue
+
+`chipper archive <id>`:
+- Mark ticket archived in chipper-queue
+- Archived tickets are excluded from active queue views
+
+All commands accept the full ticket ID (e.g. CHP-login) or just the slug (login).
+
+Depends on: cli-scaffolding, manifest-implementation

@@ -1,0 +1,20 @@
+Implement `chipper ai` — generate AI instruction files for supported coding tools.
+
+`chipper ai` (interactive):
+  Prompt user to select which tools to generate files for.
+
+`chipper ai --claude`:    writes CLAUDE.md
+`chipper ai --cursor`:    writes .cursor/rules/chipper.mdc
+`chipper ai --copilot`:   writes .github/copilot-instructions.md
+`chipper ai --windsurf`:  writes .windsurfrules
+
+Generated files should explain:
+- The manifest format (chipper-slugs, chipper-queue)
+- Available commands and their behavior
+- Ticket states (todo, in_progress, done, cancelled, archived, unregistered, unsorted, orphaned)
+- Slug and project identifier conventions
+- How to interpret and act on ticket content in an AI session
+
+Re-running chipper ai overwrites existing files with the current version.
+
+Depends on: cli-scaffolding

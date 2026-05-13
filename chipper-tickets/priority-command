@@ -1,0 +1,13 @@
+Implement `chipper priority <id> <index>`.
+
+Allows manually setting a specific sort index for a ticket in chipper-queue.
+
+Behavior:
+- Set the ticket's index to the specified value
+- If the index is already taken by another ticket, bump that ticket to the next
+  available index below it, cascading only through entries that have conflicts
+
+This is an alternative to the interactive sort for users who know exactly
+where they want a ticket placed.
+
+Depends on: cli-scaffolding, manifest-implementation

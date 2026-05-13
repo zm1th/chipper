@@ -1,0 +1,16 @@
+Implement `chipper init`.
+
+Behavior:
+- Interactively prompt for project identifier and tickets directory
+- Flags (--project, --dir) skip the corresponding prompt
+- Create the .chipper config file in the current directory with key = value format:
+    project = CHP
+    tickets_dir = chipper-tickets
+    default_status = todo
+    git = true
+    branch_prefix =
+- Create the tickets directory if it does not exist
+- Create empty chipper-slugs and chipper-queue manifest files
+- Detect if already initialized and warn before overwriting
+
+Depends on: cli-scaffolding, manifest-implementation

@@ -1,0 +1,10 @@
+Implement `chipper new <name>`.
+
+Behavior:
+- Create a new ticket file in the tickets directory with the given name
+- Open $EDITOR for content entry if set; otherwise read multi-line stdin until Ctrl+D
+- Once content is saved, prompt for a slug (suggested from filename) and register it in chipper-slugs
+- Immediately run the interactive sort to place the ticket in chipper-queue
+- Reject slug if it conflicts with an existing slug
+
+Depends on: cli-scaffolding, manifest-implementation, sort-command

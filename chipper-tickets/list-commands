@@ -1,0 +1,32 @@
+Implement list and query commands.
+
+`chipper list`:
+  Show all tickets with priority index, slug, filename, and status.
+
+`chipper top [n]` / `chipper list --top [n]`:
+  Show slugs and filenames of the top n active (not done/cancelled/archived) tickets.
+  Default n = 5.
+
+`chipper head`:
+  Display the full content of the single highest-priority active ticket.
+
+`chipper unsorted` / `chipper list --unsorted`:
+  List tickets with a slug but no queue entry.
+  Bare command prompts to run interactive sort on each.
+
+`chipper list --unregistered`:
+  List ticket files with no slug assigned.
+
+`chipper unregistered`:
+  List unregistered files and interactively prompt to assign a slug to each.
+
+`chipper list --orphaned`:
+  List slugs or queue entries whose ticket file no longer exists on disk.
+
+`chipper orphaned`:
+  List orphaned entries and interactively prompt to relink each to an existing file.
+
+`chipper show <id>`:
+  Display the full content of a specific ticket.
+
+Depends on: cli-scaffolding, manifest-implementation

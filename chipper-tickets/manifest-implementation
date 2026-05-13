@@ -1,0 +1,16 @@
+Implement reading and writing the two manifest files: chipper-slugs and chipper-queue.
+
+chipper-slugs maps ticket filenames to unique slugs:
+  filename = slug
+
+chipper-queue tracks priority order and status using sparse indexes:
+  1000 = slug    status
+
+Requirements:
+- Parse and write both files in key = value plaintext format
+- Detect unregistered files (in tickets dir but not in chipper-slugs)
+- Detect unsorted tickets (in chipper-slugs but not in chipper-queue)
+- Detect orphaned entries (in chipper-slugs or chipper-queue but file does not exist on disk)
+- Enforce slug uniqueness on write
+- Handle sparse index gaps (default 1000); on conflict, bump only the affected entries
+- Expose a clean internal API for all other commands to use

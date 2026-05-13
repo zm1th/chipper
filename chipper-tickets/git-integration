@@ -1,0 +1,16 @@
+Implement git integration for chipper start and chipper done.
+
+`chipper start <id>`:
+- Commit the manifest update (chipper-queue)
+- Create and checkout a branch named <PROJECT>-<slug> (e.g. CHP-login)
+- If branch_prefix is set in .chipper, use <prefix>/<PROJECT>-<slug> (e.g. feat/CHP-login)
+
+`chipper done <id>`:
+- Commit the ticket file (with AI summary) and updated chipper-queue
+- Prompt user whether to push the branch
+
+Git integration is enabled by default when inside a git repository.
+It can be disabled globally with `git = false` in .chipper,
+or per-command with the --no-git flag.
+
+Depends on: cli-scaffolding, manifest-implementation, status-commands

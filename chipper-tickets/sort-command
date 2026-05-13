@@ -1,0 +1,14 @@
+Implement `chipper sort` — interactive binary search insertion sort for unsorted tickets.
+
+Algorithm (per unsorted ticket):
+- Show the ticket being sorted alongside the queue's current midpoint ticket
+- User chooses which is higher priority
+- Recurse into the appropriate half of the list
+- Once the candidate segment is fewer than 10 tickets, show the full segment;
+  user may continue with midpoint comparisons or pick an exact insertion index directly
+- Insert the ticket at the chosen position in chipper-queue using the sparse index scheme
+
+`chipper new` triggers this automatically after ticket creation.
+`chipper sort` runs it for all currently unsorted tickets.
+
+Depends on: cli-scaffolding, manifest-implementation

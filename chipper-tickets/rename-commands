@@ -1,0 +1,18 @@
+Implement rename and relink commands.
+
+`chipper mv <id> <new-filename>`:
+  Rename a ticket file on disk and update chipper-slugs to point to the new filename.
+
+`chipper relink <id> <filename>`:
+  Link an orphaned slug to an existing file on disk.
+  Preserves the slug, priority index, and status of the orphaned entry.
+  Used when a file was renamed manually outside of chipper.
+
+`chipper slug <id> <new-slug>`:
+  Rename a ticket's slug in both chipper-slugs and chipper-queue.
+  Reject if the new slug is already taken.
+
+When unregistered files are detected alongside orphaned entries, chipper may
+suggest relinking them interactively (see list-commands and orphaned behavior).
+
+Depends on: cli-scaffolding, manifest-implementation

@@ -1,0 +1,10 @@
+Set up the basic CLI project structure for chipper.
+
+This includes:
+- Choosing a language and CLI framework
+- Argument parsing and help output
+- Subcommand routing (each chipper command as a subcommand)
+- Entry point and packaging so `chipper` is available on PATH
+- Project layout conventions (source, tests, etc.)
+
+This ticket is a prerequisite for all other implementation tickets.
