@@ -126,6 +126,11 @@ func Push(branch string) error {
 	return err
 }
 
+func Checkout(branch string) error {
+	_, err := run("checkout", branch)
+	return err
+}
+
 func isBinary(path string) bool {
 	f, err := os.Open(path)
 	if err != nil {

@@ -153,6 +153,35 @@ func runDone(_ *cobra.Command, _ []string) error {
 	for _, s := range allDone {
 		fmt.Printf("Done: %s-%s\n", cfg.Project, s)
 	}
+
+	if cfg.Git && !doneNoGit {
+		if err := promptSwitchToTrunk(cfg.TrunkBranch, push); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func promptSwitchToTrunk(trunk string, pushed bool) error {
+	switchToTrunk := pushed // default yes if pushed, no otherwise
+	err := huh.NewForm(huh.NewGroup(
+		huh.NewConfirm().
+			Title(fmt.Sprintf("Switch back to %q?", trunk)).
+			Value(&switchToTrunk),
+	)).Run()
+	if errors.Is(err, huh.ErrUserAborted) {
+		return nil
+	}
+	if err != nil {
+		return err
+	}
+	if switchToTrunk {
+		if err := git.Checkout(trunk); err != nil {
+			return fmt.Errorf("failed to switch to %q: %w", trunk, err)
+		}
+		fmt.Printf("Switched to %q\n", trunk)
+	}
 	return nil
 }
 
@@ -255,8 +284,9 @@ func buildDoneForm(
 		))
 	}
 
-	// Group 3: push confirmation (only if remote exists)
+	// Group 3: push confirmation (only if remote exists), default yes
 	if hasRemote {
+		*push = true
 		groups = append(groups, huh.NewGroup(
 			huh.NewConfirm().
 				Title("Push branch to remote?").
