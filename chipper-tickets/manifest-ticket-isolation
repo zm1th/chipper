@@ -1,0 +1,2 @@
+The manifest and tickets should not be in the same place. Let's create a manifest directory for the manifest files.
+For now let's call it `.manifest`

@@ -1,0 +1,7 @@
+when we mark something done, either all the actions related to closing out the ticket complete, or none of them.
+
+I have been in a situation where we did not actually make a git commit, or whatever, and the ticket was marked done.
+
+This left my code dir in an incorrect state. I couldn't complete the ticket because it had been marked done. But the branch was out of date.
+
+Furthermore, the list of files to decide whether to stage should not include any of the chipper-specific ones including tickets and manifest files.
