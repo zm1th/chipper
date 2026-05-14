@@ -1,7 +1,7 @@
 ai-command              = todo
 ticket-dependencies     = todo
 init-command            = todo
-list-commands           = todo
+list-commands           = in_progress
 new-command             = todo
 priority-command        = todo
 release-pipeline        = todo
