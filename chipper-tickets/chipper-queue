@@ -1,7 +1,6 @@
 ai-command              = todo
 ticket-dependencies     = todo
 init-command            = todo
-list-commands           = todo
 new-command             = todo
 priority-command        = todo
 release-pipeline        = todo
@@ -12,6 +11,7 @@ staging-interface       = todo
 manifest-ticket-isolation= todo
 tab-completion          = todo
 
+list-commands           = done
 done-transaction        = done
 cli-scaffolding         = done
 git-integration         = done

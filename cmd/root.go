@@ -19,17 +19,24 @@ func Execute() {
 	}
 }
 
-var listCmd = &cobra.Command{
-	Use:   "list",
-	Short: "List tickets",
-}
-
 func init() {
+	// Ticket lifecycle
 	rootCmd.AddCommand(startCmd)
 	rootCmd.AddCommand(doneCmd)
 	rootCmd.AddCommand(cancelCmd)
 	rootCmd.AddCommand(archiveCmd)
+
+	// Registration and sorting
 	rootCmd.AddCommand(unregisteredCmd)
+	rootCmd.AddCommand(orphanedCmd)
+	rootCmd.AddCommand(unsortedCmd)
+
+	// Listing and browsing
 	rootCmd.AddCommand(listCmd)
+	rootCmd.AddCommand(topCmd)
+	rootCmd.AddCommand(headCmd)
+	rootCmd.AddCommand(showCmd)
+
+	// list subcommands (read-only flag variants)
 	listCmd.AddCommand(listUnregisteredCmd)
 }
