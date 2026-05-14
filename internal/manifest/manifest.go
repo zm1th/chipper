@@ -217,6 +217,86 @@ func AddToQueue(entries []QueueEntry, slug, status string) []QueueEntry {
 	return append(entries, QueueEntry{Slug: slug, Status: status})
 }
 
+// Head returns the highest-priority active ticket (lowest non-zero index),
+// falling back to the first unsorted active entry if none are indexed.
+func Head(entries []QueueEntry) *QueueEntry {
+	for i := range entries {
+		if entries[i].Index > 0 && !IsTerminal(entries[i].Status) {
+			return &entries[i]
+		}
+	}
+	for i := range entries {
+		if !IsTerminal(entries[i].Status) {
+			return &entries[i]
+		}
+	}
+	return nil
+}
+
+// TopN returns up to n active tickets in priority order.
+func TopN(entries []QueueEntry, n int) []QueueEntry {
+	var out []QueueEntry
+	for _, e := range entries {
+		if !IsTerminal(e.Status) {
+			out = append(out, e)
+		}
+	}
+	if n < len(out) {
+		out = out[:n]
+	}
+	return out
+}
+
+// UnsortedEntries returns active queue entries that have no priority index.
+func UnsortedEntries(entries []QueueEntry) []QueueEntry {
+	var out []QueueEntry
+	for _, e := range entries {
+		if e.Index == 0 && !IsTerminal(e.Status) {
+			out = append(out, e)
+		}
+	}
+	return out
+}
+
+// OrphanedSlugs returns slugs or queue entries whose ticket file no longer exists on disk.
+func OrphanedSlugs(ticketsDir string, slugs map[string]string, queue []QueueEntry) []string {
+	slugToFile := make(map[string]string)
+	for filename, slug := range slugs {
+		slugToFile[slug] = filename
+	}
+
+	seen := make(map[string]bool)
+	var out []string
+
+	for filename, slug := range slugs {
+		if _, err := os.Stat(filepath.Join(ticketsDir, filename)); os.IsNotExist(err) {
+			if !seen[slug] {
+				out = append(out, slug)
+				seen[slug] = true
+			}
+		}
+	}
+	for _, e := range queue {
+		if seen[e.Slug] {
+			continue
+		}
+		if _, ok := slugToFile[e.Slug]; !ok {
+			out = append(out, e.Slug)
+			seen[e.Slug] = true
+		}
+	}
+	return out
+}
+
+// SlugToFile returns a reverse map from slug to filename.
+func SlugToFile(slugs map[string]string) map[string]string {
+	out := make(map[string]string, len(slugs))
+	for filename, slug := range slugs {
+		out[slug] = filename
+	}
+	return out
+}
+
 func UpdateStatus(entries []QueueEntry, slug, status string) ([]QueueEntry, error) {
 	for i := range entries {
 		if entries[i].Slug == slug {
