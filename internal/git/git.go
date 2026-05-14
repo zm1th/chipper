@@ -74,16 +74,22 @@ type FileStatus struct {
 }
 
 func ChangedFiles() ([]FileStatus, error) {
-	out, err := run("status", "--porcelain")
+	// Don't use run() here — it trims leading whitespace from the output,
+	// which corrupts porcelain format where leading spaces are significant.
+	cmd := exec.Command("git", "status", "--porcelain")
+	out, err := cmd.Output()
 	if err != nil {
+		if ee, ok := err.(*exec.ExitError); ok {
+			return nil, fmt.Errorf("%s", strings.TrimSpace(string(ee.Stderr)))
+		}
 		return nil, err
 	}
-	if out == "" {
+	if len(out) == 0 {
 		return nil, nil
 	}
 
 	var files []FileStatus
-	for _, line := range strings.Split(out, "\n") {
+	for _, line := range strings.Split(strings.TrimRight(string(out), "\n"), "\n") {
 		if len(line) < 4 {
 			continue
 		}

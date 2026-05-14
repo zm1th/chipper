@@ -9,10 +9,10 @@ rename-commands         = todo
 rename-references       = todo
 sort-command            = todo
 staging-interface       = todo
-done-transaction        = in_progress
 manifest-ticket-isolation= todo
 tab-completion          = todo
 
+done-transaction        = done
 cli-scaffolding         = done
 git-integration         = done
 manifest                = done
