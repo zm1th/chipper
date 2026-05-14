@@ -24,6 +24,10 @@ func IsInsideRepo() bool {
 	return err == nil
 }
 
+func Root() (string, error) {
+	return run("rev-parse", "--show-toplevel")
+}
+
 func CurrentBranch() (string, error) {
 	return run("rev-parse", "--abbrev-ref", "HEAD")
 }
