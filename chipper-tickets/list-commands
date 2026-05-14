@@ -30,3 +30,11 @@ Implement list and query commands.
   Display the full content of a specific ticket.
 
 Depends on: cli-scaffolding, manifest-implementation
+
+`chipper list` with no flags should open a full ticket list that is interactive.
+By default it should show something similar to the `top` command
+But, I should be able to scroll down in the list, and as I scroll in a left pane,
+the ticket contents should display in a right pane.
+And, I should be able to filter to finished tasks,
+and there should be a search capability where I can type in a search term and the left pane (the list) auto-updates
+and ideally the search term is highlighted in the list on the left pane and the ticket contents in the right pane

@@ -47,7 +47,7 @@ func runDone(_ *cobra.Command, _ []string) error {
 	slug := inProgress.Slug
 
 	// Gather file state before any interaction
-	var userFiles, chipperFiles []git.FileStatus
+	var userFiles []git.FileStatus
 	var gitRoot, branch string
 	hasRemote := false
 
@@ -69,7 +69,7 @@ func runDone(_ *cobra.Command, _ []string) error {
 		if err != nil {
 			return err
 		}
-		userFiles, chipperFiles = partitionFiles(allFiles, cfg.TicketsDir, gitRoot)
+		userFiles = excludeChipperFiles(allFiles, cfg.TicketsDir, gitRoot)
 	}
 
 	// --- Collect all decisions before making any changes ---
@@ -114,7 +114,50 @@ func runDone(_ *cobra.Command, _ []string) error {
 
 	// --- Apply all changes ---
 
+	if commitMsg == "" {
+		commitMsg = defaultMsg
+	}
+	for _, s := range selectedAlso {
+		commitMsg += fmt.Sprintf(", %s-%s", cfg.Project, s)
+	}
+
 	allDone := append([]string{slug}, selectedAlso...)
+
+	if cfg.Git && !doneNoGit {
+		// Pre-checks before touching anything on disk
+		onTrunk, err := git.IsOnBranch(cfg.TrunkBranch)
+		if err != nil {
+			return err
+		}
+		if onTrunk {
+			return fmt.Errorf("on trunk branch %q — run chipper start to begin a ticket branch before finishing", cfg.TrunkBranch)
+		}
+
+		// Now safe to write queue and commit
+		if err := applyAndCommit(cfg, entries, allDone, selectedFiles, commitMsg, branch, push); err != nil {
+			return err
+		}
+	} else {
+		// No git — just write the queue
+		for _, s := range allDone {
+			entries, err = manifest.UpdateStatus(entries, s, "done")
+			if err != nil {
+				return err
+			}
+		}
+		if err := manifest.SaveQueue(cfg.TicketsDir, entries); err != nil {
+			return err
+		}
+	}
+
+	for _, s := range allDone {
+		fmt.Printf("Done: %s-%s\n", cfg.Project, s)
+	}
+	return nil
+}
+
+func applyAndCommit(cfg *config.Config, entries []manifest.QueueEntry, allDone, selectedFiles []string, commitMsg, branch string, push bool) error {
+	var err error
 	for _, s := range allDone {
 		entries, err = manifest.UpdateStatus(entries, s, "done")
 		if err != nil {
@@ -125,49 +168,27 @@ func runDone(_ *cobra.Command, _ []string) error {
 		return err
 	}
 
-	if cfg.Git && !doneNoGit {
-		// Auto-stage chipper-managed files
-		if len(chipperFiles) > 0 {
-			var paths []string
-			for _, f := range chipperFiles {
-				paths = append(paths, f.Path)
-			}
-			if err := git.StageFiles(paths); err != nil {
-				return fmt.Errorf("failed to stage chipper files: %w", err)
-			}
-		}
-
-		// Stage user-selected files
-		if len(selectedFiles) > 0 {
-			if err := git.StageFiles(selectedFiles); err != nil {
-				return err
-			}
-		}
-
-		if commitMsg == "" {
-			commitMsg = defaultMsg
-		}
-		// Append any additionally closed tickets to commit message
-		for _, s := range selectedAlso {
-			commitMsg += fmt.Sprintf(", %s-%s", cfg.Project, s)
-		}
-
-		if err := git.Commit(commitMsg); err != nil {
+	// Stage the entire tickets directory then any user-selected files
+	if err := git.StageFiles([]string{cfg.TicketsDir}); err != nil {
+		return fmt.Errorf("failed to stage chipper files: %w", err)
+	}
+	if len(selectedFiles) > 0 {
+		if err := git.StageFiles(selectedFiles); err != nil {
 			return err
-		}
-		fmt.Printf("Committed on branch %q\n", branch)
-
-		if push {
-			fmt.Println("Pushing...")
-			if err := git.Push(branch); err != nil {
-				return fmt.Errorf("push failed: %w", err)
-			}
-			fmt.Println("Pushed.")
 		}
 	}
 
-	for _, s := range allDone {
-		fmt.Printf("Done: %s-%s\n", cfg.Project, s)
+	if err := git.Commit(commitMsg); err != nil {
+		return err
+	}
+	fmt.Printf("Committed on branch %q\n", branch)
+
+	if push {
+		fmt.Println("Pushing...")
+		if err := git.Push(branch); err != nil {
+			return fmt.Errorf("push failed: %w", err)
+		}
+		fmt.Println("Pushed.")
 	}
 	return nil
 }
@@ -246,20 +267,18 @@ func buildDoneForm(
 	return groups, nil
 }
 
-func partitionFiles(files []git.FileStatus, ticketsDir, gitRoot string) (user, chipper []git.FileStatus) {
+func excludeChipperFiles(files []git.FileStatus, ticketsDir, gitRoot string) []git.FileStatus {
 	relTickets, err := filepath.Rel(gitRoot, ticketsDir)
 	if err != nil {
 		relTickets = ticketsDir
 	}
 	relTickets = filepath.ToSlash(relTickets)
 
+	var user []git.FileStatus
 	for _, f := range files {
-		normalized := filepath.ToSlash(f.Path)
-		if strings.HasPrefix(normalized, relTickets+"/") {
-			chipper = append(chipper, f)
-		} else {
+		if !strings.HasPrefix(filepath.ToSlash(f.Path), relTickets+"/") {
 			user = append(user, f)
 		}
 	}
-	return
+	return user
 }
