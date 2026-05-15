@@ -8,6 +8,7 @@ release-pipeline        = todo             3500
 rename-commands         = todo             3750
 priority-command        = todo             4000
 rename-references       = todo             5000
+ai-command-more-tools   = todo             6000
 
 ai-command              = done
 sort-command            = done
