@@ -1,4 +1,4 @@
-new-command             = todo             500
+new-command             = in_progress      500
 manifest-ticket-isolation= todo             1500
 ticket-dependencies     = todo             2000
 init-command            = todo             3000
