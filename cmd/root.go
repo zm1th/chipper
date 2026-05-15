@@ -35,11 +35,13 @@ func init() {
 	// Setup and creation
 	rootCmd.AddCommand(initCmd)
 	rootCmd.AddCommand(newCmd)
+	rootCmd.AddCommand(aiCmd)
 
 	// Listing and browsing
 	rootCmd.AddCommand(listCmd)
 	rootCmd.AddCommand(topCmd)
 	rootCmd.AddCommand(headCmd)
+	rootCmd.AddCommand(currentCmd)
 	rootCmd.AddCommand(showCmd)
 
 	// list subcommands (read-only flag variants)

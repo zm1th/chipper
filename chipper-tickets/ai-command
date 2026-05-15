@@ -18,3 +18,11 @@ Generated files should explain:
 Re-running chipper ai overwrites existing files with the current version.
 
 Depends on: cli-scaffolding
+
+## Completion note
+
+Delivered `chipper ai --claude`, which writes `.claude/chipper.md` (rather than
+`CLAUDE.md` directly, to avoid clobbering existing content) and prints an `@`-include
+hint. Interactive multi-select also wired up with the Claude option.
+
+Cursor, Copilot, and Windsurf templates deferred to CHP-ai-command-more-tools.

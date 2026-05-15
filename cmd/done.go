@@ -13,8 +13,14 @@ import (
 	"github.com/zm1th/chipper/internal/manifest"
 )
 
-var doneNoGit bool
-var alsoFlag []string
+var (
+	doneNoGit    bool
+	alsoFlag     []string
+	doneMessage  string
+	doneAllFiles bool
+	donePushFlag bool
+	doneNoPush   bool
+)
 
 var doneCmd = &cobra.Command{
 	Use:   "done",
@@ -26,9 +32,13 @@ var doneCmd = &cobra.Command{
 func init() {
 	doneCmd.Flags().BoolVar(&doneNoGit, "no-git", false, "Skip git operations")
 	doneCmd.Flags().StringSliceVar(&alsoFlag, "also", nil, "Additional slugs to mark done (comma-separated)")
+	doneCmd.Flags().StringVarP(&doneMessage, "message", "m", "", "Commit message (skips interactive prompt)")
+	doneCmd.Flags().BoolVar(&doneAllFiles, "all-files", false, "Stage all changed non-binary files (skips file selection)")
+	doneCmd.Flags().BoolVar(&donePushFlag, "push", false, "Push after committing")
+	doneCmd.Flags().BoolVar(&doneNoPush, "no-push", false, "Skip push after committing")
 }
 
-func runDone(_ *cobra.Command, _ []string) error {
+func runDone(cmd *cobra.Command, _ []string) error {
 	cfg, err := config.Load()
 	if err != nil {
 		return err
@@ -45,8 +55,22 @@ func runDone(_ *cobra.Command, _ []string) error {
 	}
 
 	slug := inProgress.Slug
+	defaultMsg := fmt.Sprintf("chipper: done %s-%s", cfg.Project, slug)
 
-	// Gather file state before any interaction
+	// Resolve --also slugs early so we can validate before any interaction
+	var selectedAlso []string
+	if alsoFlag != nil {
+		for _, s := range alsoFlag {
+			resolved := resolveSlug(s, cfg.Project)
+			if manifest.FindBySlug(entries, resolved) == nil {
+				return fmt.Errorf("ticket %q not found in queue", s)
+			}
+			selectedAlso = append(selectedAlso, resolved)
+		}
+	}
+
+	// ── Git pre-flight ────────────────────────────────────────────────────────
+
 	var userFiles []git.FileStatus
 	var gitRoot, branch string
 	hasRemote := false
@@ -72,23 +96,28 @@ func runDone(_ *cobra.Command, _ []string) error {
 		userFiles = excludeChipperFiles(allFiles, cfg.TicketsDir, gitRoot)
 	}
 
-	// --- Collect all decisions before making any changes ---
+	// ── Collect decisions ─────────────────────────────────────────────────────
 
-	var selectedAlso []string
-	var selectedFiles []string
-	var commitMsg string
-	var push bool
+	// Flags that were explicitly passed (not just their default values)
+	messageFlagged := cmd.Flags().Lookup("message").Changed
+	pushFlagged := donePushFlag || doneNoPush
 
-	defaultMsg := fmt.Sprintf("chipper: done %s-%s", cfg.Project, slug)
+	// When message, files, and push are all covered by flags, treat as fully
+	// non-interactive: skip the "also" group too.
+	alsoProvided := alsoFlag != nil || (messageFlagged && doneAllFiles && pushFlagged)
 
-	groups, err := buildDoneForm(
+	// Decisions — start from flag values, fill gaps interactively
+	selectedFiles := flagSelectedFiles(userFiles) // may be overridden by form
+	commitMsg := doneMessage
+	push := donePushFlag
+
+	groups := buildDoneGroups(
 		cfg, entries, slug,
-		userFiles, hasRemote, defaultMsg,
+		userFiles, hasRemote,
+		defaultMsg,
+		alsoProvided, messageFlagged, doneAllFiles, pushFlagged,
 		&selectedAlso, &selectedFiles, &commitMsg, &push,
 	)
-	if err != nil {
-		return err
-	}
 
 	if len(groups) > 0 {
 		formErr := huh.NewForm(groups...).Run()
@@ -101,18 +130,7 @@ func runDone(_ *cobra.Command, _ []string) error {
 		}
 	}
 
-	// Append also-slugs from --also flag (non-interactive path)
-	if alsoFlag != nil {
-		for _, s := range alsoFlag {
-			resolved := resolveSlug(s, cfg.Project)
-			if manifest.FindBySlug(entries, resolved) == nil {
-				return fmt.Errorf("ticket %q not found in queue", s)
-			}
-			selectedAlso = append(selectedAlso, resolved)
-		}
-	}
-
-	// --- Apply all changes ---
+	// ── Build final commit message ────────────────────────────────────────────
 
 	if commitMsg == "" {
 		commitMsg = defaultMsg
@@ -123,8 +141,9 @@ func runDone(_ *cobra.Command, _ []string) error {
 
 	allDone := append([]string{slug}, selectedAlso...)
 
+	// ── Apply ─────────────────────────────────────────────────────────────────
+
 	if cfg.Git && !doneNoGit {
-		// Pre-checks before touching anything on disk
 		onTrunk, err := git.IsOnBranch(cfg.TrunkBranch)
 		if err != nil {
 			return err
@@ -133,12 +152,10 @@ func runDone(_ *cobra.Command, _ []string) error {
 			return fmt.Errorf("on trunk branch %q — run chipper start to begin a ticket branch before finishing", cfg.TrunkBranch)
 		}
 
-		// Now safe to write queue and commit
 		if err := applyAndCommit(cfg, entries, allDone, selectedFiles, commitMsg, branch, push); err != nil {
 			return err
 		}
 	} else {
-		// No git — just write the queue
 		for _, s := range allDone {
 			entries, err = manifest.UpdateStatus(entries, s, "done")
 			if err != nil {
@@ -154,7 +171,9 @@ func runDone(_ *cobra.Command, _ []string) error {
 		fmt.Printf("Done: %s-%s\n", cfg.Project, s)
 	}
 
-	if cfg.Git && !doneNoGit {
+	// Skip the trunk-switch prompt when running non-interactively
+	nonInteractive := messageFlagged || doneAllFiles || pushFlagged
+	if cfg.Git && !doneNoGit && !nonInteractive {
 		if err := promptSwitchToTrunk(cfg.TrunkBranch, push); err != nil {
 			return err
 		}
@@ -163,8 +182,110 @@ func runDone(_ *cobra.Command, _ []string) error {
 	return nil
 }
 
+// flagSelectedFiles returns all non-binary user files when --all-files is set,
+// otherwise returns nil (caller will fill via form or leave empty).
+func flagSelectedFiles(userFiles []git.FileStatus) []string {
+	if !doneAllFiles {
+		return nil
+	}
+	var out []string
+	for _, f := range userFiles {
+		if !f.Binary {
+			out = append(out, f.Path)
+		}
+	}
+	return out
+}
+
+// buildDoneGroups returns only the form groups needed for decisions not already
+// covered by flags.
+func buildDoneGroups(
+	cfg *config.Config,
+	entries []manifest.QueueEntry,
+	currentSlug string,
+	userFiles []git.FileStatus,
+	hasRemote bool,
+	defaultMsg string,
+	alsoProvided, messageProvided, allFilesProvided, pushProvided bool,
+	selectedAlso *[]string,
+	selectedFiles *[]string,
+	commitMsg *string,
+	push *bool,
+) []*huh.Group {
+	var groups []*huh.Group
+
+	// Group 1: other tickets to close
+	if !alsoProvided {
+		var opts []huh.Option[string]
+		for _, e := range entries {
+			if e.Slug == currentSlug || manifest.IsTerminal(e.Status) {
+				continue
+			}
+			label := fmt.Sprintf("%s-%s  [%s]", cfg.Project, e.Slug, e.Status)
+			opts = append(opts, huh.NewOption(label, e.Slug))
+		}
+		if len(opts) > 0 {
+			groups = append(groups, huh.NewGroup(
+				huh.NewMultiSelect[string]().
+					Title("Any other tickets completed on this branch?").
+					Description(fmt.Sprintf("Already included: %s-%s", cfg.Project, currentSlug)).
+					Options(opts...).
+					Value(selectedAlso),
+			))
+		}
+	}
+
+	// Group 2: file staging + commit message
+	needFileSelect := len(userFiles) > 0 && !allFilesProvided
+	needMessage := !messageProvided
+
+	if needFileSelect || needMessage {
+		var fields []huh.Field
+
+		if needFileSelect {
+			fileOpts := make([]huh.Option[string], len(userFiles))
+			var preselected []string
+			for i, f := range userFiles {
+				label := f.Path
+				if f.Binary {
+					label += "  [binary]"
+				} else {
+					preselected = append(preselected, f.Path)
+				}
+				fileOpts[i] = huh.NewOption(label, f.Path)
+			}
+			*selectedFiles = preselected
+			fields = append(fields, huh.NewMultiSelect[string]().
+				Title("Select files to stage").
+				Options(fileOpts...).
+				Value(selectedFiles))
+		}
+
+		if needMessage {
+			*commitMsg = defaultMsg
+			fields = append(fields, huh.NewText().
+				Title("Commit message").
+				Value(commitMsg))
+		}
+
+		groups = append(groups, huh.NewGroup(fields...))
+	}
+
+	// Group 3: push confirmation
+	if hasRemote && !pushProvided {
+		*push = true
+		groups = append(groups, huh.NewGroup(
+			huh.NewConfirm().
+				Title("Push branch to remote?").
+				Value(push),
+		))
+	}
+
+	return groups
+}
+
 func promptSwitchToTrunk(trunk string, pushed bool) error {
-	switchToTrunk := pushed // default yes if pushed, no otherwise
+	switchToTrunk := pushed
 	err := huh.NewForm(huh.NewGroup(
 		huh.NewConfirm().
 			Title(fmt.Sprintf("Switch back to %q?", trunk)).
@@ -197,7 +318,6 @@ func applyAndCommit(cfg *config.Config, entries []manifest.QueueEntry, allDone, 
 		return err
 	}
 
-	// Stage the entire tickets directory then any user-selected files
 	if err := git.StageFiles([]string{cfg.TicketsDir}); err != nil {
 		return fmt.Errorf("failed to stage chipper files: %w", err)
 	}
@@ -220,81 +340,6 @@ func applyAndCommit(cfg *config.Config, entries []manifest.QueueEntry, allDone, 
 		fmt.Println("Pushed.")
 	}
 	return nil
-}
-
-func buildDoneForm(
-	cfg *config.Config,
-	entries []manifest.QueueEntry,
-	currentSlug string,
-	userFiles []git.FileStatus,
-	hasRemote bool,
-	defaultMsg string,
-	selectedAlso *[]string,
-	selectedFiles *[]string,
-	commitMsg *string,
-	push *bool,
-) ([]*huh.Group, error) {
-	var groups []*huh.Group
-
-	// Group 1: other tickets to close (skip if --also flag used)
-	if alsoFlag == nil {
-		var opts []huh.Option[string]
-		for _, e := range entries {
-			if e.Slug == currentSlug || manifest.IsTerminal(e.Status) {
-				continue
-			}
-			label := fmt.Sprintf("%s-%s  [%s]", cfg.Project, e.Slug, e.Status)
-			opts = append(opts, huh.NewOption(label, e.Slug))
-		}
-		if len(opts) > 0 {
-			groups = append(groups, huh.NewGroup(
-				huh.NewMultiSelect[string]().
-					Title("Any other tickets completed on this branch?").
-					Description(fmt.Sprintf("Already included: %s-%s", cfg.Project, currentSlug)).
-					Options(opts...).
-					Value(selectedAlso),
-			))
-		}
-	}
-
-	// Group 2: file staging (only if there are user files)
-	if len(userFiles) > 0 {
-		fileOpts := make([]huh.Option[string], len(userFiles))
-		var preselected []string
-		for i, f := range userFiles {
-			label := f.Path
-			if f.Binary {
-				label += "  [binary]"
-			} else {
-				preselected = append(preselected, f.Path)
-			}
-			fileOpts[i] = huh.NewOption(label, f.Path)
-		}
-		*selectedFiles = preselected
-		*commitMsg = defaultMsg
-
-		groups = append(groups, huh.NewGroup(
-			huh.NewMultiSelect[string]().
-				Title("Select files to stage").
-				Options(fileOpts...).
-				Value(selectedFiles),
-			huh.NewText().
-				Title("Commit message").
-				Value(commitMsg),
-		))
-	}
-
-	// Group 3: push confirmation (only if remote exists), default yes
-	if hasRemote {
-		*push = true
-		groups = append(groups, huh.NewGroup(
-			huh.NewConfirm().
-				Title("Push branch to remote?").
-				Value(push),
-		))
-	}
-
-	return groups, nil
 }
 
 func excludeChipperFiles(files []git.FileStatus, ticketsDir, gitRoot string) []git.FileStatus {

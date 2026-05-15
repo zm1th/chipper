@@ -1,0 +1,23 @@
+Add remaining AI tool templates to `chipper ai`.
+
+Following on from CHP-ai-command (which delivered --claude), add support for:
+
+`chipper ai --cursor`:    writes .cursor/rules/chipper.mdc
+`chipper ai --copilot`:   writes .github/copilot-instructions.md
+`chipper ai --windsurf`:  writes .windsurfrules
+
+Each file should explain chipper to the respective AI tool using the same
+content as the Claude template, adapted to the tool's format/conventions.
+
+Steps:
+1. Add templates in internal/ai/ (cursor.mdc, copilot.md, windsurf.md) with embed declarations.
+2. Add --cursor, --copilot, --windsurf flags in cmd/ai.go.
+3. Add write functions for each destination path.
+4. Update the interactive multi-select to include all four options.
+
+Note: before or alongside this ticket, ensure every chipper command has a
+fully non-interactive (no huh / no TTY) invocation path via flags. Then update
+the AI instruction templates to document those non-interactive flag forms so AI
+assistants can drive chipper without a terminal.
+
+Depends on: CHP-ai-command
