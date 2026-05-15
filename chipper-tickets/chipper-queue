@@ -1,5 +1,4 @@
 new-command             = todo             500
-ai-command              = todo             1000
 manifest-ticket-isolation= todo             1500
 ticket-dependencies     = todo             2000
 init-command            = todo             3000
@@ -9,7 +8,9 @@ release-pipeline        = todo             3500
 rename-commands         = todo             3750
 priority-command        = todo             4000
 rename-references       = todo             5000
+ai-command-more-tools   = todo             6000
 
+ai-command              = done
 sort-command            = done
 list-commands           = done
 done-transaction        = done

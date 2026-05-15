@@ -1,4 +1,5 @@
 ai-command = ai-command
+ai-command-more-tools = ai-command-more-tools
 cli-scaffolding = cli-scaffolding
 dependencies = ticket-dependencies
 done-transaction = done-transaction
