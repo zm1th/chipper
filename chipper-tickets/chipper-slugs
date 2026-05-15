@@ -1,5 +1,6 @@
 ai-command = ai-command
 ai-command-more-tools = ai-command-more-tools
+allow-claude-chipper-actions = allow-claude-chipper-actions
 cli-scaffolding = cli-scaffolding
 dependencies = ticket-dependencies
 done-transaction = done-transaction
@@ -15,6 +16,7 @@ release-pipeline = release-pipeline
 rename-commands = rename-commands
 rename-references = rename-references
 sort-command = sort-command
+sort-window = sort-tweaks
 staging-interface = staging-interface
 status-commands = status-commands
 tab-completion = tab-completion
