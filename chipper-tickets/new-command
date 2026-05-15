@@ -8,3 +8,11 @@ Behavior:
 - Reject slug if it conflicts with an existing slug
 
 Depends on: cli-scaffolding, manifest-implementation, sort-command
+
+## Completion note
+
+Implementation was already committed prior to this ticket being started. Verified
+all spec requirements are met: file creation, $EDITOR/stdin content entry, huh slug
+prompt with suggestion and duplicate rejection, chipper-slugs registration, and
+immediate interactive sort. Non-interactive flag support deferred to the broader
+non-TTY follow-up ticket.

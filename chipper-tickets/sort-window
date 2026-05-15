@@ -1,0 +1,1 @@
+The sort window connects the list under the two panel cards unnecessarily. Moving up and down on the list does not slot in the ticket to the location where the cursor is, but it should slot in the ticket. The panels should not change, they continue showing the insertion ticket on the left and the comparison ticket on the right. 

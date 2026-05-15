@@ -1,8 +1,9 @@
-new-command             = todo             500
 manifest-ticket-isolation= todo             1500
 ticket-dependencies     = todo             2000
 init-command            = todo             3000
 tab-completion          = todo             3125
+allow-claude-chipper-actions= todo             3187
+sort-tweaks             = todo             3218
 staging-interface       = todo             3250
 release-pipeline        = todo             3500
 rename-commands         = todo             3750
@@ -10,6 +11,7 @@ priority-command        = todo             4000
 rename-references       = todo             5000
 ai-command-more-tools   = todo             6000
 
+new-command             = done
 ai-command              = done
 sort-command            = done
 list-commands           = done

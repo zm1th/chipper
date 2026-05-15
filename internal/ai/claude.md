@@ -60,6 +60,9 @@ with `chipper new <name>`.
   `chipper start`, `chipper done`, `chipper cancel`, `chipper archive`.
 - **Do not commit on the trunk branch.** Run `chipper start` first to get a ticket
   branch. Chipper enforces this and will refuse to commit on trunk.
+- **Do not read or comment on ticket files unrelated to the current ticket.** Other
+  modified or untracked ticket files visible in `git status` are none of your concern.
+  `chipper done --all-files` stages and commits them correctly — trust it.
 
 ## Command reference
 
