@@ -30,6 +30,11 @@ func init() {
 	rootCmd.AddCommand(unregisteredCmd)
 	rootCmd.AddCommand(orphanedCmd)
 	rootCmd.AddCommand(unsortedCmd)
+	rootCmd.AddCommand(sortCmd)
+
+	// Setup and creation
+	rootCmd.AddCommand(initCmd)
+	rootCmd.AddCommand(newCmd)
 
 	// Listing and browsing
 	rootCmd.AddCommand(listCmd)

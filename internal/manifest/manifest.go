@@ -288,6 +288,86 @@ func OrphanedSlugs(ticketsDir string, slugs map[string]string, queue []QueueEntr
 	return out
 }
 
+// InsertSorted moves a slug from the unsorted section into the prioritized section
+// at the given position (0 = highest priority). Bumps any conflicting indexes.
+func InsertSorted(entries []QueueEntry, slug string, pos int) []QueueEntry {
+	var prioritized, unsorted, completed []QueueEntry
+	for _, e := range entries {
+		if IsTerminal(e.Status) {
+			completed = append(completed, e)
+		} else if e.Index > 0 {
+			prioritized = append(prioritized, e)
+		} else if e.Slug != slug {
+			unsorted = append(unsorted, e)
+		}
+		// slug being sorted is dropped from unsorted; re-added below with an index
+	}
+	sort.Slice(prioritized, func(i, j int) bool { return prioritized[i].Index < prioritized[j].Index })
+
+	// Find the original status of the slug
+	status := "todo"
+	for _, e := range entries {
+		if e.Slug == slug {
+			status = e.Status
+			break
+		}
+	}
+
+	newIndex := computeInsertIndex(prioritized, pos)
+	newEntry := QueueEntry{Slug: slug, Status: status, Index: newIndex}
+
+	// Splice into prioritized at pos
+	prioritized = append(prioritized, QueueEntry{})
+	copy(prioritized[pos+1:], prioritized[pos:])
+	prioritized[pos] = newEntry
+
+	// Bump any entries whose index is now ≤ the entry before them
+	for i := pos + 1; i < len(prioritized); i++ {
+		if prioritized[i].Index <= prioritized[i-1].Index {
+			prioritized[i].Index = prioritized[i-1].Index + 1
+		} else {
+			break
+		}
+	}
+
+	result := append(prioritized, unsorted...)
+	return append(result, completed...)
+}
+
+func computeInsertIndex(prioritized []QueueEntry, pos int) int {
+	switch {
+	case len(prioritized) == 0:
+		return 1000
+	case pos == 0:
+		if prioritized[0].Index > 1 {
+			return prioritized[0].Index / 2
+		}
+		return 1
+	case pos >= len(prioritized):
+		return prioritized[len(prioritized)-1].Index + 1000
+	default:
+		lo := prioritized[pos-1].Index
+		hi := prioritized[pos].Index
+		mid := (lo + hi) / 2
+		if mid <= lo {
+			return lo + 1
+		}
+		return mid
+	}
+}
+
+// PrioritizedEntries returns active entries that have a sort index, in order.
+func PrioritizedEntries(entries []QueueEntry) []QueueEntry {
+	var out []QueueEntry
+	for _, e := range entries {
+		if e.Index > 0 && !IsTerminal(e.Status) {
+			out = append(out, e)
+		}
+	}
+	sort.Slice(out, func(i, j int) bool { return out[i].Index < out[j].Index })
+	return out
+}
+
 // SlugToFile returns a reverse map from slug to filename.
 func SlugToFile(slugs map[string]string) map[string]string {
 	out := make(map[string]string, len(slugs))
