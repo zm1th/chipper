@@ -1,0 +1,1 @@
+there should be a command to start the next ticket. If there's a ticket in progress we should fail with a helpful message. 

@@ -1,0 +1,1 @@
+especially for ai-creation of new tasks, we should be able to create them without being interactive - both for providing the contents of the ticket and for sorting. We should be able to skip sorting altogether and pass ticket contents as an argument for any general scriptable capability

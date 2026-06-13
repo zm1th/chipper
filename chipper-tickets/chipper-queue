@@ -1,8 +1,12 @@
+command-start-top-ticket= todo             375
+new-without-sort        = todo             750
+sort-shortcuts          = todo             1125
 manifest-ticket-isolation= todo             1500
 ticket-dependencies     = todo             2000
 init-command            = todo             3000
 tab-completion          = todo             3125
 allow-claude-chipper-actions= todo             3187
+default-yes-chipper-commands-ai= todo             3202
 sort-tweaks             = todo             3218
 staging-interface       = todo             3250
 release-pipeline        = todo             3500
