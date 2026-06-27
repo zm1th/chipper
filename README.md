@@ -2,6 +2,13 @@
 
 Chipper is a CLI tool for managing tickets as plain text files within your project repository. Each unit of work ("chip") lives as a committed file, keeping your ticket history alongside your code.
 
+## Crappy Tool is Crappy
+
+Note that in its present form, Chipper doesn't really do a good job of helping reduce token spend or manage tasks for AI-based programming tasks.
+
+The sort system is pretty cool though.
+
+
 ## Philosophy
 
 - Tickets are files. Create one by creating a file.
